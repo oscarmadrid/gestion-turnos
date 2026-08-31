@@ -1,9 +1,12 @@
 {
   "name": "turnos-red",
   "version": "1.0.0",
-  "description": "",
+  "description": "Prototipo de backend para centralizar la gestión de turnos",
   "main": "index.js",
   "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint . --ext .ts",
     "format": ""
