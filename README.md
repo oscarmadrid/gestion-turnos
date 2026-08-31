@@ -78,8 +78,7 @@ gestion-turnos/
 └── tsconfig.json
 
 
-└── gestion-turnos/
-
+├── gestion-turnos/
     ├── data/
     │   └── turnos.json          # Archivo de persistencia de datos local (JSON)
     ├── src/
