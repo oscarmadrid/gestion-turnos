@@ -54,22 +54,24 @@ El proyecto incluye los siguientes scripts organizados para el ciclo de vida de 
 
 La arquitectura del proyecto sigue una estricta separación modular de responsabilidades para garantizar mantenibilidad y escalabilidad:
 
-turnos-red/
-├── data/
-│   └── turnos.json          # Archivo de persistencia de datos local (JSON)
-├── src/
-│   ├── events/
-│   │   └── eventBus.ts      # Instancia centralizada de EventEmitter (Node.js)
-│   ├── models/
-│   │   └── turno.ts         # Definición de interfaces TypeScript (Turno y TurnoCrudo)
-│   ├── routes/
-│   │   └── turno.routes.ts  # Endpoints de la API REST (Express Router)
-│   ├── services/
-│   │   └── agenda.ts        # Lógica de negocio, normalización y persistencia (AgendaTurnos)
-│   └── index.ts             # Punto de entrada principal (Express, HTTP Server y Socket.IO)
-├── .env                     # Variables de entorno
-├── package.json             # Dependencias y scripts de npm
-└── tsconfig.json            # Configuración del compilador de TypeScript
+└── gestion-turnos/
+    ├── data/
+    │   └── turnos.json          # Archivo de persistencia de datos local (JSON)
+    ├── src/
+    │   ├── events/
+    │   │   └── eventBus.ts      # Instancia centralizada de EventEmitter (Node.js)
+    │   ├── models/
+    │   │   └── turno.ts         # Definición de interfaces TypeScript (Turno y TurnoCrudo)
+    │   ├── app.tsx
+    │   ├── routes/
+    │   │   └── turno.routes.ts  # Endpoints de la API REST (Express Router)
+    │   ├── services/
+    │   │   └── agenda.ts        # Lógica de negocio, normalización y persistencia (AgendaTurnos)
+    │   └── index.ts             # Punto de entrada principal (Express, HTTP Server y Socket.IO)
+    ├── .env                     # Variables de entorno
+    ├── package.json             # Dependencias y scripts de npm
+    ├── README.md
+    └── tsconfig.json            # Configuración del compilador de TypeScript
 
 
 ### Explicación de Componentes Clave:
