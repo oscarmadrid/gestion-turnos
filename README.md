@@ -54,27 +54,27 @@ El proyecto incluye los siguientes scripts organizados para el ciclo de vida de 
 
 La arquitectura del proyecto sigue una estricta separación modular de responsabilidades para garantizar mantenibilidad y escalabilidad:
 
-gestion-turnos.git/
-├── .env.example
-├── .gitignore
-├── .nvmrc
-├── README.md
+gestion-turnos/
 ├── data/
 │   └── turnos.json
-├── ejemplocallback.ts
-├── package-lock.json
-├── package.json
 ├── src/
-│   ├── ejemplo-callback.ts
 │   ├── events/
 │   │   └── eventBus.ts
-│   ├── index.ts
 │   ├── models/
 │   │   └── turno.ts
 │   ├── routes/
 │   │   └── turno.routes.ts
-│   └── services/
-│       └── agenda.ts
+│   ├── services/
+│   │   └── agenda.ts
+│   ├── ejemplo-callback.ts
+│   └── index.ts
+├── .env.example
+├── .gitignore
+├── .nvmrc
+├── ejemplocallback.ts
+├── package-lock.json
+├── package.json
+├── README.md
 └── tsconfig.json
 
 
