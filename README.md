@@ -34,7 +34,6 @@ Crea un archivo .env en la raíz de tu proyecto e incluye la siguiente configura
 Variable    |   Descripción                                                     |   Valor por Defecto
 ------------|-------------------------------------------------------------------|---------------------
 PORT        |	Puerto en el que se ejecutará el servidor HTTP y Socket.IO.     |	3000
-------------|-------------------------------------------------------------------|---------------------
 DATA_PATH   |	Ruta hacia el archivo JSON de almacenamiento local de turnos.   |	./data/turnos.json
 
 ---
