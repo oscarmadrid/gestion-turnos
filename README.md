@@ -56,46 +56,22 @@ La arquitectura del proyecto sigue una estricta separación modular de responsab
 
 gestion-turnos/
 ├── data/
-│   └── turnos.json
+│   └── turnos.json          # Archivo de persistencia de datos local (JSON)
 ├── src/
 │   ├── events/
-│   │   └── eventBus.ts
+│   │   └── eventBus.ts      # Instancia centralizada de EventEmitter (Node.js)
 │   ├── models/
-│   │   └── turno.ts
+│   │   └── turno.ts         # Definición de interfaces TypeScript (Turno y TurnoCrudo)
+│   ├── app.tsx
 │   ├── routes/
-│   │   └── turno.routes.ts
+│   │   └── turno.routes.ts  # Endpoints de la API REST (Express Router)
 │   ├── services/
-│   │   └── agenda.ts
-│   ├── ejemplo-callback.ts
-│   └── index.ts
-├── .env.example
-├── .gitignore
-├── .nvmrc
-├── ejemplocallback.ts
-├── package-lock.json
-├── package.json
+│   │   └── agenda.ts        # Lógica de negocio, normalización y persistencia (AgendaTurnos)
+│   └── index.ts             # Punto de entrada principal (Express, HTTP Server y Socket.IO)
+├── .env                     # Variables de entorno
+├── package.json             # Dependencias y scripts de npm
 ├── README.md
-└── tsconfig.json
-
-
-├── gestion-turnos/
-    ├── data/
-    │   └── turnos.json          # Archivo de persistencia de datos local (JSON)
-    ├── src/
-    │   ├── events/
-    │   │   └── eventBus.ts      # Instancia centralizada de EventEmitter (Node.js)
-    │   ├── models/
-    │   │   └── turno.ts         # Definición de interfaces TypeScript (Turno y TurnoCrudo)
-    │   ├── app.tsx
-    │   ├── routes/
-    │   │   └── turno.routes.ts  # Endpoints de la API REST (Express Router)
-    │   ├── services/
-    │   │   └── agenda.ts        # Lógica de negocio, normalización y persistencia (AgendaTurnos)
-    │   └── index.ts             # Punto de entrada principal (Express, HTTP Server y Socket.IO)
-    ├── .env                     # Variables de entorno
-    ├── package.json             # Dependencias y scripts de npm
-    ├── README.md
-    └── tsconfig.json            # Configuración del compilador de TypeScript
+└── tsconfig.json            # Configuración del compilador de TypeScript
 
 
 ### Explicación de Componentes Clave:
