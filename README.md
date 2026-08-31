@@ -55,6 +55,7 @@ El proyecto incluye los siguientes scripts organizados para el ciclo de vida de 
 La arquitectura del proyecto sigue una estricta separación modular de responsabilidades para garantizar mantenibilidad y escalabilidad:
 
 gestion-turnos/
+
 ├── data/
 │   └── turnos.json
 ├── src/
