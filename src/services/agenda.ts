@@ -74,16 +74,19 @@ export class AgendaTurnos {
         const contenido = await readFile(this.filePath, "utf-8").catch(() => "[]");
         const crudos: TurnoCrudo[] = JSON.parse(contenido);
 
-        const idexistente = crudos.some((t) => t.id === nuevaData.id);
-        if (idexistente) {
+        // Validamos si ya existe un turno con el ID que mandó el cliente
+        const existe = crudos.some((t) => t.id === nuevaData.id);
+        if (existe) {
             throw new Error(`El ID ${nuevaData.id} ya se encuentra registrado.`);
         }
 
+        // Normalizamos el turno usando el ID que traía el cliente
         const turnoNormalizado = this.normalizarTurno(nuevaData);
         if (!turnoNormalizado) {
             throw new Error("No se pudo normalizar el turno para agregarlo.");
         }
 
+        // Guardamos el objeto crudo original con su ID respetado
         crudos.push(nuevaData);
         await writeFile(this.filePath, JSON.stringify(crudos, null, 2), "utf-8");
 
