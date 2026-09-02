@@ -28,6 +28,11 @@ servidorTiempoReal.on("connection", (conexion) => {
   });
 });
 
+eventBus.on("turno:ListarTurnos", (turnos) => {
+  console.log(`[EVENTO INTERNO] Consulta de turnos registrados`);
+  servidorTiempoReal.emit("turno:ListarTurnos", turnos);
+});
+
 eventBus.on("turno:nuevo", (turno) => {
   console.log(`[EVENTO INTERNO] Nuevo turno creado ID: ${turno.id}`);
   servidorTiempoReal.emit("turno:nuevo", turno);

@@ -48,14 +48,22 @@ export class AgendaTurnos {
     }
     
     async getTurnos(): Promise<Turno[]> {
-        try {
-            const contenido = await readFile(this.filePath, "utf-8");
-            const crudos: TurnoCrudo[] = JSON.parse(contenido);
-            return crudos.map((t) => this.normalizarTurno(t)).filter((t): t is Turno => t !== null);
-        } catch {
-            return [];
-        }
+    try {
+        const contenido = await readFile(this.filePath, "utf-8");
+        const crudos: TurnoCrudo[] = JSON.parse(contenido);
+
+        const turnosNormalizados = crudos
+            .map((t) => this.normalizarTurno(t))
+            .filter((t): t is Turno => t !== null);
+
+        // Emitimos el evento de consulta general con la lista completa
+        eventBus.emit("turno:ListarTurnos", turnosNormalizados);
+
+        return turnosNormalizados;
+    } catch {
+        return [];
     }
+}
 
     async getTurnosID(id: number): Promise<Turno | undefined> {
         const turnos = await this.getTurnos();
@@ -63,20 +71,20 @@ export class AgendaTurnos {
     }
 
     async PostTurno(nuevaData: TurnoCrudo): Promise<Turno> {
-        const turnosValidos = await this.getTurnos();
-        const maxId = turnosValidos.length > 0 ? Math.max(...turnosValidos.map((t) => t.id)) : 0;
+        const contenido = await readFile(this.filePath, "utf-8").catch(() => "[]");
+        const crudos: TurnoCrudo[] = JSON.parse(contenido);
 
-        const turnoConId: TurnoCrudo = { ...nuevaData, id: maxId + 1 };
-        const turnoNormalizado = this.normalizarTurno(turnoConId);
+        const idexistente = crudos.some((t) => t.id === nuevaData.id);
+        if (idexistente) {
+            throw new Error(`El ID ${nuevaData.id} ya se encuentra registrado.`);
+        }
 
+        const turnoNormalizado = this.normalizarTurno(nuevaData);
         if (!turnoNormalizado) {
             throw new Error("No se pudo normalizar el turno para agregarlo.");
         }
 
-        const contenido = await readFile(this.filePath, "utf-8").catch(() => "[]");
-        const crudos: TurnoCrudo[] = JSON.parse(contenido);
-        crudos.push(turnoConId);
-
+        crudos.push(nuevaData);
         await writeFile(this.filePath, JSON.stringify(crudos, null, 2), "utf-8");
 
         // EMISIÓN EVENTO
