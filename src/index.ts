@@ -33,6 +33,11 @@ eventBus.on("turno:ListarTurnos", (turnos) => {
   servidorTiempoReal.emit("turno:ListarTurnos", turnos);
 });
 
+eventBus.on("turno:ConsultaTurnoID", (turno) => {
+  console.log(`[EVENTO INTERNO] Consulta de turno ID: ${turno.id}`);
+  servidorTiempoReal.emit("turno:ConsultaTurnoID", turno);
+});
+
 eventBus.on("turno:nuevo", (turno) => {
   console.log(`[EVENTO INTERNO] Nuevo turno creado ID: ${turno.id}`);
   servidorTiempoReal.emit("turno:nuevo", turno);

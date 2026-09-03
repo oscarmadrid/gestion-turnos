@@ -65,9 +65,20 @@ export class AgendaTurnos {
     }
 }
 
-    async getTurnosID(id: number): Promise<Turno | undefined> {
-        const turnos = await this.getTurnos();
-        return turnos.find((t) => t.id === id);
+    async getTurnoID(id: number): Promise<Turno | undefined> {
+        const contenido = await readFile(this.filePath, "utf-8").catch(() => "[]");
+        const crudos: TurnoCrudo[] = JSON.parse(contenido);
+
+        const crudoEncontrado = crudos.find((t) => parseInt(String(t.id), 10) === id);
+        if (!crudoEncontrado) return undefined;
+
+        const turnoNormalizado = this.normalizarTurno(crudoEncontrado);
+        if (!turnoNormalizado) return undefined;
+
+        // Emitimos únicamente el evento específico de ID
+        eventBus.emit("turno:ConsultaTurnoID", turnoNormalizado);
+
+        return turnoNormalizado;
     }
 
     async PostTurno(nuevaData: TurnoCrudo): Promise<Turno> {
@@ -77,7 +88,7 @@ export class AgendaTurnos {
         // Validamos si ya existe un turno con el ID que mandó el cliente
         const existe = crudos.some((t) => t.id === nuevaData.id);
         if (existe) {
-            throw new Error(`El ID ${nuevaData.id} ya se encuentra registrado.`);
+            throw new Error(`El ID ${nuevaData.id} ya se encuentra registrado. Por favor, utilice un ID único para el nuevo turno.`);
         }
 
         // Normalizamos el turno usando el ID que traía el cliente

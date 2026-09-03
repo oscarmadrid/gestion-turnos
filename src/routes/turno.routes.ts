@@ -22,7 +22,7 @@ router.get("/turnos/:id", async (req: Request, res: Response) => {
       return res.status(400).json({ error: "El ID proporcionado no es válido" });
     }
 
-    const turno = await agenda.getTurnosID(id);
+    const turno = await agenda.getTurnoID(id);
     if (!turno) {
       return res.status(404).json({ error: `Turno con ID ${id} no encontrado` });
     }
