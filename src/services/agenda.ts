@@ -56,6 +56,8 @@ export class AgendaTurnos {
             .map((t) => this.normalizarTurno(t))
             .filter((t): t is Turno => t !== null);
 
+        console.log(`Registros aceptados: ${turnosNormalizados.length} | Rechazados: ${crudos.length - turnosNormalizados.length}`);
+
         // Emitimos el evento de consulta general con la lista completa
         eventBus.emit("turno:ListarTurnos", turnosNormalizados);
 
