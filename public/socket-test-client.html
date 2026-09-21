@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<title>TurnosRed — Cliente de prueba Socket.IO</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.8.1/socket.io.min.js"></script>
+<style>
+  :root {
+    --bg: #0f172a;
+    --panel: #1e293b;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --ok: #22c55e;
+    --bad: #ef4444;
+    --accent: #38bdf8;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 24px;
+  }
+  h1 { font-size: 1.4rem; margin-bottom: 4px; }
+  .sub { color: var(--muted); margin-bottom: 20px; }
+  .status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: var(--panel);
+    font-weight: 600;
+    margin-bottom: 20px;
+  }
+  .dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--bad);
+  }
+  .dot.connected { background: var(--ok); }
+  .config {
+    background: var(--panel);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 20px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .config input {
+    background: #0f172a;
+    border: 1px solid #334155;
+    color: var(--text);
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    width: 260px;
+  }
+  .config button {
+    background: var(--accent);
+    color: #0f172a;
+    border: none;
+    padding: 9px 16px;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .log {
+    background: var(--panel);
+    border-radius: 12px;
+    padding: 16px;
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+  .event {
+    border-left: 4px solid var(--accent);
+    background: #0f172a;
+    padding: 10px 14px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    animation: fade 0.3s ease;
+  }
+  .event.creado { border-color: var(--ok); }
+  .event.eliminado { border-color: var(--bad); }
+  .event-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .event-name { color: var(--accent); font-weight: 700; }
+  pre {
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-size: 0.85rem;
+  }
+  .empty { color: var(--muted); text-align: center; padding: 30px 0; }
+  @keyframes fade { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+  <h1>TurnosRed — Cliente de prueba Socket.IO</h1>
+  <div class="sub">Escucha turno:nuevo, turno:actualizado y turno:eliminado en tiempo real, sin recargar la página.</div>
+
+  <div class="config">
+    <input id="serverUrl" value="http://localhost:3000" />
+    <button id="connectBtn">Conectar</button>
+    <span id="statusText" class="status"><span class="dot" id="dot"></span><span id="statusLabel">Desconectado</span></span>
+  </div>
+
+  <div class="log" id="log">
+    <div class="empty" id="emptyMsg">Esperando eventos… hacé un POST/PUT/DELETE desde Postman y va a aparecer acá al instante.</div>
+  </div>
+
+<script>
+  let socket = null;
+  const dot = document.getElementById('dot');
+  const statusLabel = document.getElementById('statusLabel');
+  const log = document.getElementById('log');
+  const emptyMsg = document.getElementById('emptyMsg');
+
+  function setConnected(isConnected) {
+    dot.classList.toggle('connected', isConnected);
+    statusLabel.textContent = isConnected ? 'Conectado' : 'Desconectado';
+  }
+
+  function addEvent(name, payload, cssClass) {
+    if (emptyMsg) emptyMsg.remove();
+    const el = document.createElement('div');
+    el.className = 'event ' + (cssClass || '');
+    const time = new Date().toLocaleTimeString();
+    el.innerHTML =
+      '<div class="event-header"><span class="event-name">' + name + '</span><span>' + time + '</span></div>' +
+      '<pre>' + JSON.stringify(payload, null, 2) + '</pre>';
+    log.prepend(el);
+  }
+
+  function connect() {
+    const url = document.getElementById('serverUrl').value.trim();
+    if (socket) socket.disconnect();
+
+    socket = io(url, { transports: ['websocket', 'polling'] });
+
+    socket.on('connect', () => setConnected(true));
+    socket.on('disconnect', () => setConnected(false));
+    socket.on('connect_error', (err) => {
+      setConnected(false);
+      addEvent('connect_error', { message: err.message }, 'eliminado');
+    });
+
+    socket.on('turno:nuevo', (data) => addEvent('turno:nuevo', data, 'creado'));
+    socket.on('turno:creado', (data) => addEvent('turno:creado', data, 'creado'));
+    socket.on('turno:actualizado', (data) => addEvent('turno:actualizado', data));
+    socket.on('turno:eliminado', (data) => addEvent('turno:eliminado', data, 'eliminado'));
+  }
+
+  document.getElementById('connectBtn').addEventListener('click', connect);
+  connect();
+</script>
+</body>
+</html>
