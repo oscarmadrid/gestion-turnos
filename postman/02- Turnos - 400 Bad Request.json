@@ -1,0 +1,1 @@
+{"status":400,"message":"Error de validación en los datos ingresados","code":"VALIDATION_ERROR","details":[{"campo":"especialidad","mensaje":"La especialidad debe estar en formato Title Case (ej: 'Clínica médica')"}]}
