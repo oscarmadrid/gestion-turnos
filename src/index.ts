@@ -3,7 +3,10 @@ import express from "express";
 import { createServer } from "node:http";
 import { Server } from "socket.io";
 import turnoRoutes from "./routes/turno.routes.js";
+import medicoRoutes from "./routes/medico.routes.js";
 import { eventBus } from "./events/eventBus.js";
+import { errorHandler } from "./middlewares/errorHandler.js";
+import { AppError } from "./errors/AppError.js";
 
 const aplicacion = express();
 const servidorHttp = createServer(aplicacion);
@@ -19,6 +22,15 @@ const PORT = process.env.PORT || 3000;
 aplicacion.use(express.json());
 aplicacion.use(express.static("public"));
 aplicacion.use("/api", turnoRoutes);
+aplicacion.use("/api", medicoRoutes);
+
+// Ruta no encontrada (cualquier método/URL que no matchee)
+aplicacion.use((req, res, next) => {
+  next(new AppError(404, `Ruta ${req.method} ${req.originalUrl} no encontrada`, "ROUTE_NOT_FOUND"));
+});
+
+// Middleware de errores — siempre al final, después de todas las rutas
+aplicacion.use(errorHandler);
 
 servidorTiempoReal.on("connection", (conexion) => {
   console.log(`[Socket.IO] Cliente conectado: ${conexion.id}`);

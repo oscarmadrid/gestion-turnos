@@ -2,6 +2,13 @@ import type { Turno, TurnoCrudo } from "../models/turno.js";
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { eventBus } from "../events/eventBus.js";
+import { AppError } from "../errors/AppError.js";
+
+export interface FiltrosTurno {
+  especialidad?: string;
+  fecha?: string;
+  medicoId?: number;
+}
 
 export class AgendaTurnos {
     private filePath = path.resolve(process.env.DATA_PATH || "./data/turnos.json");
@@ -43,29 +50,45 @@ export class AgendaTurnos {
             fecha: this.normalizarFecha(String(turnoCrudo.fecha)),
             hora: this.normalizarHora(String(turnoCrudo.hora)),
             confirmado: confirmadoBool,
+            ...(turnoCrudo.medicoId !== undefined && { medicoId: turnoCrudo.medicoId }),
             ...(turnoCrudo.observaciones && { observaciones: String(turnoCrudo.observaciones).trim() }),
         };
     }
     
-    async getTurnos(): Promise<Turno[]> {
-    try {
-        const contenido = await readFile(this.filePath, "utf-8");
-        const crudos: TurnoCrudo[] = JSON.parse(contenido);
+    async getTurnos(filtros: FiltrosTurno = {}): Promise<Turno[]> {
+        try {
+            const contenido = await readFile(this.filePath, "utf-8");
+            const crudos: TurnoCrudo[] = JSON.parse(contenido);
 
-        const turnosNormalizados = crudos
-            .map((t) => this.normalizarTurno(t))
-            .filter((t): t is Turno => t !== null);
+            let turnosNormalizados = crudos
+                .map((t) => this.normalizarTurno(t))
+                .filter((t): t is Turno => t !== null);
 
-        console.log(`Registros aceptados: ${turnosNormalizados.length} | Rechazados: ${crudos.length - turnosNormalizados.length}`);
+            console.log(`Registros aceptados: ${turnosNormalizados.length} | Rechazados: ${crudos.length - turnosNormalizados.length}`);
 
-        // Emitimos el evento de consulta general con la lista completa
-        eventBus.emit("turno:ListarTurnos", turnosNormalizados);
+            if (filtros.especialidad) {
+                const especialidadBuscada = filtros.especialidad.toLowerCase();
+                turnosNormalizados = turnosNormalizados.filter(
+                    (t) => t.especialidad.toLowerCase() === especialidadBuscada
+                );
+            }
 
-        return turnosNormalizados;
-    } catch {
-        return [];
+            if (filtros.fecha) {
+                turnosNormalizados = turnosNormalizados.filter((t) => t.fecha === filtros.fecha);
+            }
+
+            if (filtros.medicoId !== undefined) {
+                turnosNormalizados = turnosNormalizados.filter((t) => t.medicoId === filtros.medicoId);
+            }
+
+            // Emitimos el evento de consulta general con la lista completa
+            eventBus.emit("turno:ListarTurnos", turnosNormalizados);
+
+            return turnosNormalizados;
+        } catch {
+            return [];
+        }
     }
-}
 
     async getTurnoID(id: number): Promise<Turno | undefined> {
         const contenido = await readFile(this.filePath, "utf-8").catch(() => "[]");
@@ -90,13 +113,12 @@ export class AgendaTurnos {
         // Validamos si ya existe un turno con el ID que mandó el cliente
         const existe = crudos.some((t) => t.id === nuevaData.id);
         if (existe) {
-            throw new Error(`El ID ${nuevaData.id} ya se encuentra registrado. Por favor, utilice un ID único para el nuevo turno.`);
+            throw new AppError(400, `El ID ${nuevaData.id} ya se encuentra registrado`, "DUPLICATE_ID");
         }
 
-        // Normalizamos el turno usando el ID que traía el cliente
         const turnoNormalizado = this.normalizarTurno(nuevaData);
         if (!turnoNormalizado) {
-            throw new Error("No se pudo normalizar el turno para agregarlo.");
+            throw new AppError(400, "No se pudo normalizar el turno. Verifique los campos obligatorios.", "VALIDATION_ERROR");
         }
 
         // Guardamos el objeto crudo original con su ID respetado
