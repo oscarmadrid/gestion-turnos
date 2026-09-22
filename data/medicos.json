@@ -1,0 +1,44 @@
+[
+  {
+    "id": 1,
+    "nombre": "Dra. Ana Torres",
+    "especialidad": "Pediatría",
+    "matricula": "MP-4521",
+    "disponible": "si"
+  },
+  {
+    "nombre": "Dra. Laura Méndez Cisternas",
+    "especialidad": "Cardiología",
+    "matricula": "MP-7710",
+    "disponible": "si",
+    "id": 3
+  },
+  {
+    "nombre": "Dra. Laura Méndez",
+    "especialidad": "Cardiología",
+    "matricula": "MP-7710",
+    "disponible": "si",
+    "id": 4
+  },
+  {
+    "nombre": "Dra. Laura Méndez",
+    "especialidad": "Cardiología",
+    "matricula": "MP-7710",
+    "disponible": "no",
+    "id": 5
+  },
+  {
+    "nombre": "Dra. Laura Méndez",
+    "especialidad": "Cardiología",
+    "matricula": "MP-7710",
+    "disponible": "si",
+    "id": 8
+  },
+  {
+    "nombre": "Dra. Laura Méndez",
+    "especialidad": "Cardiología",
+    "matricula": "MP-7710",
+    "disponible": "si",
+    "id": 9
+  }
+]
