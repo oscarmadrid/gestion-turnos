@@ -176,7 +176,81 @@ Ejemplo combinado: `GET /api/medicos?especialidad=Odontología&disponible=true`
 
 ---
 
-## 7. Uso de Inteligencia Artificial
+## 7. Arquitectura y Diagramas
+
+## Arquitectura del sistema
+
+```mermaid
+graph TD
+    Cliente["Cliente Web / Postman"]
+
+    subgraph API["API REST - Express"]
+        Rutas["Rutas Express<br/>(src/routes)"]
+        Zod["Middleware de validación Zod<br/>(src/schemas)"]
+        Controladores["Controladores<br/>(src/controllers)"]
+        Servicios["Servicios<br/>(src/services)"]
+    end
+
+    subgraph Persistencia["Persistencia"]
+        TurnosJSON["turnos.json"]
+        MedicosJSON["medicos.json"]
+    end
+
+    subgraph TiempoReal["Comunicación en tiempo real"]
+        EventBus["EventEmitter<br/>(src/events/eventBus.ts)"]
+        SocketServer["Servidor Socket.IO"]
+        ClientesWS["Clientes WebSocket conectados"]
+    end
+
+    Cliente -->|HTTP Request| Rutas
+    Rutas --> Zod
+    Zod -->|datos válidos| Controladores
+    Zod -.->|400 Bad Request| Cliente
+    Controladores --> Servicios
+    Servicios -->|lee/escribe| TurnosJSON
+    Servicios -->|lee/escribe| MedicosJSON
+    Servicios -->|emit turno:nuevo, turno:actualizado, turno:eliminado| EventBus
+    EventBus --> SocketServer
+    SocketServer -->|evento en tiempo real| ClientesWS
+    Controladores -->|HTTP Response| Cliente
+```
+
+## Flujo de creación de un turno (POST /turnos)
+
+```mermaid
+sequenceDiagram
+    participant Cliente
+    participant Rutas as Rutas Express
+    participant Zod as Middleware Zod
+    participant Controller as turno.controller
+    participant Service as AgendaTurnos (service)
+    participant JSON as turnos.json
+    participant EventBus as EventEmitter
+    participant Socket as Servidor Socket.IO
+    participant WS as Clientes WebSocket
+
+    Cliente->>Rutas: POST /api/turnos (body JSON)
+    Rutas->>Zod: validate(turnoSchema)
+
+    alt Datos inválidos
+        Zod-->>Cliente: 400 Bad Request (VALIDATION_ERROR)
+    else Datos válidos
+        Zod->>Controller: next() con body validado
+        Controller->>Service: PostTurno(body)
+        Service->>JSON: Lee archivo actual
+        Service->>Service: Normaliza y valida reglas de negocio
+        Service->>JSON: Escribe turno nuevo
+        Service->>EventBus: emit("turno:nuevo", turno)
+        EventBus->>Socket: listener recibe el evento
+        Socket->>WS: broadcast "turno:nuevo"
+        Service-->>Controller: turno creado
+        Controller-->>Cliente: 201 Created (turno)
+    end
+```
+
+---
+
+## 8. Uso de Inteligencia Artificial
 
 | Tarea | Herramienta | Prompt (resumen) | Respuesta generada | Ajuste manual aplicado |
 |---|---|---|---|---|

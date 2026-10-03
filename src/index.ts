@@ -7,6 +7,8 @@ import medicoRoutes from "./routes/medico.routes.js";
 import { eventBus } from "./events/eventBus.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
 import { AppError } from "./errors/AppError.js";
+import swaggerUi from "swagger-ui-express";
+import { swaggerSpec } from "./config/swagger.js";
 
 const aplicacion = express();
 const servidorHttp = createServer(aplicacion);
@@ -23,6 +25,7 @@ aplicacion.use(express.json());
 aplicacion.use(express.static("public"));
 aplicacion.use("/api", turnoRoutes);
 aplicacion.use("/api", medicoRoutes);
+aplicacion.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Ruta no encontrada (cualquier método/URL que no matchee)
 aplicacion.use((req, res, next) => {
