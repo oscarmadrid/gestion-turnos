@@ -1,0 +1,11 @@
+[
+  {
+    "id": 502,
+    "paciente": "Test Paciente",
+    "documento": "12345678",
+    "especialidad": "Pediatría",
+    "fecha": "20/10/2026",
+    "hora": "10:00",
+    "confirmado": "si"
+  }
+]
