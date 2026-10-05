@@ -11,6 +11,14 @@ const options: swaggerJSDoc.Options = {
     },
     servers: [{ url: "http://localhost:3000/api", description: "Servidor local" }],
     components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
+          description: "Token JWT obtenido mediante POST /auth/login. Formato: Bearer <token>",
+        },
+      },
       schemas: {
         Turno: {
           type: "object",

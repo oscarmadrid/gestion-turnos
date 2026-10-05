@@ -2,6 +2,7 @@ import { Router } from "express";
 import * as turnoController from "../controllers/turno.controller.js";
 import { validate } from "../middlewares/validate.js";
 import { turnoSchema, turnoUpdateSchema } from "../schemas/turno.schema.js";
+import { verificarToken } from "../middlewares/verificarToken.js";
 
 const router = Router();
 
@@ -82,6 +83,8 @@ router.get("/turnos/:id", turnoController.obtenerTurnoPorId);
  *     summary: Crea un nuevo turno
  *     description: El campo id es obligatorio y debe ser provisto por el cliente (identificador de la sede de origen).
  *     tags: [Turnos]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -98,8 +101,13 @@ router.get("/turnos/:id", turnoController.obtenerTurnoPorId);
  *         content:
  *           application/json:
  *             schema: { $ref: '#/components/schemas/ErrorResponse' }
+ *       401:
+ *         description: Token no proporcionado, inválido o expirado
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ErrorResponse' }
  */
-router.post("/turnos", validate(turnoSchema), turnoController.crearTurno);
+router.post("/turnos", verificarToken, validate(turnoSchema), turnoController.crearTurno);
 
 /**
  * @openapi
@@ -113,6 +121,8 @@ router.post("/turnos", validate(turnoSchema), turnoController.crearTurno);
  *         required: true
  *         schema: { type: integer }
  *         example: 200
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -134,9 +144,13 @@ router.post("/turnos", validate(turnoSchema), turnoController.crearTurno);
  *         content:
  *           application/json:
  *             schema: { $ref: '#/components/schemas/ErrorResponse' }
+ *       401:
+ *         description: Token no proporcionado, inválido o expirado
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ErrorResponse' }
  */
-router.put("/turnos/:id", validate(turnoUpdateSchema), turnoController.actualizarTurno);
-
+router.put("/turnos/:id", verificarToken, validate(turnoUpdateSchema), turnoController.actualizarTurno);
 /**
  * @openapi
  * /turnos/{id}:
@@ -149,6 +163,8 @@ router.put("/turnos/:id", validate(turnoUpdateSchema), turnoController.actualiza
  *         required: true
  *         schema: { type: integer }
  *         example: 200
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       204:
  *         description: Turno eliminado correctamente (sin contenido)
@@ -157,7 +173,12 @@ router.put("/turnos/:id", validate(turnoUpdateSchema), turnoController.actualiza
  *         content:
  *           application/json:
  *             schema: { $ref: '#/components/schemas/ErrorResponse' }
+ *       401:
+ *         description: Token no proporcionado, inválido o expirado
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ErrorResponse' }
  */
-router.delete("/turnos/:id", turnoController.eliminarTurno);
+router.delete("/turnos/:id", verificarToken, turnoController.eliminarTurno);
 
 export default router;

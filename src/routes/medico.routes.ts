@@ -2,6 +2,7 @@ import { Router } from "express";
 import * as medicoController from "../controllers/medico.controller.js";
 import { validate } from "../middlewares/validate.js";
 import { medicoSchema, medicoUpdateSchema } from "../schemas/medico.schema.js";
+import { verificarToken } from "../middlewares/verificarToken.js";
 
 const router = Router();
 
@@ -77,6 +78,8 @@ router.get("/medicos/:id", medicoController.obtenerMedicoPorId);
  *     summary: Crea un nuevo médico
  *     description: El campo id se autogenera en el servidor, no debe enviarse en el body.
  *     tags: [Médicos]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -93,8 +96,13 @@ router.get("/medicos/:id", medicoController.obtenerMedicoPorId);
  *         content:
  *           application/json:
  *             schema: { $ref: '#/components/schemas/ErrorResponse' }
+  *       401:
+ *         description: Token no proporcionado, inválido o expirado
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ErrorResponse' } 
  */
-router.post("/medicos", validate(medicoSchema), medicoController.crearMedico);
+router.post("/medicos", verificarToken, validate(medicoSchema), medicoController.crearMedico);
 
 /**
  * @openapi
@@ -108,6 +116,8 @@ router.post("/medicos", validate(medicoSchema), medicoController.crearMedico);
  *         required: true
  *         schema: { type: integer }
  *         example: 1
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -129,8 +139,13 @@ router.post("/medicos", validate(medicoSchema), medicoController.crearMedico);
  *         content:
  *           application/json:
  *             schema: { $ref: '#/components/schemas/ErrorResponse' }
+  *       401:
+ *         description: Token no proporcionado, inválido o expirado
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ErrorResponse' } 
  */
-router.put("/medicos/:id", validate(medicoUpdateSchema), medicoController.actualizarMedico);
+router.put("/medicos/:id", verificarToken, validate(medicoUpdateSchema), medicoController.actualizarMedico);
 
 /**
  * @openapi
@@ -144,6 +159,8 @@ router.put("/medicos/:id", validate(medicoUpdateSchema), medicoController.actual
  *         required: true
  *         schema: { type: integer }
  *         example: 1
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       204:
  *         description: Médico eliminado correctamente (sin contenido)
@@ -152,7 +169,12 @@ router.put("/medicos/:id", validate(medicoUpdateSchema), medicoController.actual
  *         content:
  *           application/json:
  *             schema: { $ref: '#/components/schemas/ErrorResponse' }
+ *       401:
+ *         description: Token no proporcionado, inválido o expirado
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ErrorResponse' } 
  */
-router.delete("/medicos/:id", medicoController.eliminarMedico);
+router.delete("/medicos/:id", verificarToken, medicoController.eliminarMedico);
 
 export default router;
