@@ -123,7 +123,7 @@ Si el `id` enviado ya existe en el sistema, la API responde con **400 Bad Reques
 
 ## 6. Documentación de endpoints + query params
 
-## Endpoints
+### Endpoints
 
 Todas las respuestas de error siguen este formato estándar:
 ```json
@@ -178,7 +178,7 @@ Ejemplo combinado: `GET /api/medicos?especialidad=Odontología&disponible=true`
 
 ## 7. Arquitectura y Diagramas
 
-## Arquitectura del sistema
+### Arquitectura del sistema
 
 ```mermaid
 graph TD
@@ -215,7 +215,7 @@ graph TD
     Controladores -->|HTTP Response| Cliente
 ```
 
-## Flujo de creación de un turno (POST /turnos)
+### Flujo de creación de un turno (POST /turnos)
 
 ```mermaid
 sequenceDiagram
@@ -260,3 +260,97 @@ sequenceDiagram
 | Filtros por query params | Claude | "Agregar filtros especialidad/fecha/medicoId sin crear endpoints nuevos" | Extensión de `getTurnos` y `getMedicos` con parámetro `filtros` | Se agregó el campo `medicoId` faltante en la interfaz `Turno` y en `normalizarTurno` |
 | Colección de Postman + tests | Claude | "Armar tests automatizados con happy path y casos borde para las 10 requests" | Scripts `pm.test()` para cada request, variables de entorno dinámicas | Corrección manual de script mal ubicado (pre-request vs. post-response) y de campos copiados incorrectamente entre Turno y Médico |
 | Mock Server | Claude (chat) + AI integrada de Postman | "Simular la API sin backend real a partir de la colección" | Mock handler (`default.js`) generado por el asistente de Postman con seed data | Se corrigió el prefijo de rutas (`/api`) para que coincida con el servidor real |
+| Documentación OpenAPI/Swagger | Claude | "Documentar los endpoints existentes con swagger-jsdoc, con schemas reutilizables para Turno, Médico y errores" | `swagger.ts`, anotaciones `@openapi` en cada ruta, publicado en `/api-docs` | Se ajustaron los `tags` y ejemplos para que coincidan con los datos reales usados en Postman |
+| Diagramas Mermaid (Docs as Code) | Claude | "Generar un diagrama de componentes y uno de secuencia para POST /turnos, embebidos en el README" | Diagramas Mermaid en Markdown | Verificados visualmente con Mermaid Live Editor y el preview de Markdown de VS Code |
+| Autenticación JWT | Claude | "Implementar login/registro con JWT, protegiendo solo las operaciones de escritura" | `auth.service.ts`, `verificarToken.ts`, endpoints `/auth/registro` y `/auth/login` | Se ajustó la protección para dejar los `GET` públicos y proteger selectivamente `POST`/`PUT`/`DELETE` |
+| Manejo centralizado de errores (v2) | Claude | "Estandarizar el middleware de errores con la firma de 4 parámetros y nuevos códigos de dominio" | `errorHandler.ts` con firma `(err, req, res, next)` y código `RESOURCE_NOT_FOUND` | Se mantuvo minimalista a pedido propio, sin agregar wrapper `asyncHandler` |
+| Logging estructurado (Morgan + Pino) | Claude | "Integrar logging estructurado con Pino, redactando campos sensibles, y Morgan para logs HTTP" | `config/logger.ts` con `redact`, integración en `index.ts`/`app.ts` y en los 3 servicios | Se corrigió manualmente un import incorrecto detectado en una revisión del proyecto completo |
+| Suite de tests (Jest + Supertest) | Claude | "Armar tests unitarios con mocks, de integración con Supertest y un E2E secuencial, con cobertura ≥60% en services" | Configuración `jest.config.js` en modo ESM, tests en `tests/`, mocks de `fs/promises`, `bcryptjs` y `jsonwebtoken` | Se separó `app.ts` de `index.ts` para poder testear la app sin levantar el servidor real |
+| Reverse proxy con Nginx | Claude | "Configurar Nginx como reverse proxy preservando headers de origen" | `nginx.conf` con `proxy_pass` y headers `Host`/`X-Real-IP`/`X-Forwarded-For` | Validado localmente con Nginx vía Homebrew, confirmado con `curl` que las respuestas vía proxy son idénticas a las directas |
+
+---
+
+## 9. Autenticación
+
+La API utiliza **JSON Web Tokens (JWT)** para proteger las operaciones de escritura. Las operaciones de lectura (`GET`) son públicas.
+
+### Flujo de autenticación
+
+1. **Registro:** `POST /api/auth/registro` con `email`, `password` y `rol` (`admin` o `recepcion`). La contraseña se almacena hasheada con `bcryptjs`, nunca en texto plano.
+2. **Login:** `POST /api/auth/login` con `email` y `password`. Si las credenciales son válidas, devuelve un `token` JWT firmado (payload: `id`, `rol`) y los datos públicos del usuario.
+3. **Uso del token:** las operaciones protegidas requieren el header `Authorization: Bearer <token>`.
+
+### Endpoints de autenticación
+
+| Método | Ruta | Descripción | Protegido |
+|---|---|---|---|
+| POST | `/api/auth/registro` | Crea un usuario nuevo | No |
+| POST | `/api/auth/login` | Autentica y devuelve un token JWT | No |
+
+### Rutas protegidas
+
+| Recurso | GET (lectura) | POST / PUT / DELETE (escritura) |
+|---|---|---|
+| Turnos | Público | Requiere `Authorization: Bearer <token>` |
+| Médicos | Público | Requiere `Authorization: Bearer <token>` |
+
+Si el token falta, es inválido o expiró, la API responde `401` con los códigos `AUTH_TOKEN_MISSING` o `AUTH_TOKEN_INVALID` respectivamente, siguiendo el formato estándar de error (ver sección 6).
+
+---
+
+## 10. Pruebas y Cobertura
+
+El proyecto cuenta con una suite de tests automatizados con **Jest** y **Supertest**, organizada en tres niveles:
+
+- **Tests unitarios** (`tests/agenda.test.ts`, `tests/medico.service.test.ts`, `tests/auth.service.test.ts`): prueban la lógica de negocio de cada servicio de forma aislada, mockeando el sistema de archivos (y `bcryptjs`/`jsonwebtoken` en el caso de autenticación) para no depender de I/O real.
+- **Tests de integración** (`tests/turnos.integration.test.ts`): levantan la app de Express completa (sin arrancar un servidor real) y prueban los endpoints HTTP de punta a punta contra archivos de datos de prueba aislados (`tests/fixtures/`), cubriendo casos de éxito (`201`), validación (`400`) y autenticación (`401`).
+- **Test E2E secuencial** (`tests/flujo-e2e.test.ts`): simula el flujo completo de un usuario real en orden — registro → login → crear turno → consultarlo → actualizarlo → eliminarlo → confirmar que ya no existe.
+
+### Cómo correr los tests
+
+```bash
+npm test
+```
+
+Esto ejecuta toda la suite y genera un reporte de cobertura en la terminal, limitado a `src/services/**` (el requisito de la consigna es ≥60% ahí).
+
+### Cómo interpretar el reporte de cobertura
+
+File               | % Stmts | % Branch | % Funcs | % Lines
+-------------------|---------|----------|---------|--------
+agenda.ts          |   84.53 |       76 |   71.42 |   93.75
+auth.service.ts    |   91.42 |     87.5 |      75 |   93.75
+medico.service.ts  |   92.53 |    81.08 |   94.11 |   94.54
+
+- **% Stmts (Statements):** porcentaje de líneas de código ejecutadas al menos una vez por los tests.
+- **% Branch:** porcentaje de ramas condicionales cubiertas (ej. ambos lados de un `if`).
+- **% Funcs:** porcentaje de funciones/métodos invocados por algún test.
+- **% Lines:** porcentaje de líneas de código cubiertas (similar a Stmts, a nivel de línea).
+
+El proyecto mantiene los 4 indicadores por encima del 60% exigido en los tres servicios principales.
+
+---
+
+## 11. Despliegue (Reverse Proxy con Nginx)
+
+En un escenario de despliegue, la aplicación Node no se expone directamente: se coloca **Nginx** delante como reverse proxy, usando la configuración de `nginx.conf` en la raíz del proyecto.
+
+### Validación local
+
+```bash
+# Terminal 1: levantar la app
+npm run dev
+
+# Terminal 2: levantar Nginx con la config del proyecto
+nginx -c "$(pwd)/nginx.conf"
+
+# Terminal 3: probar que el proxy reenvía correctamente
+curl -i http://localhost:8080/api/turnos
+```
+
+La respuesta a través del proxy (puerto 8080) es idéntica a la obtenida accediendo directamente al puerto 3000, confirmando que `proxy_pass` y los headers `Host`, `X-Real-IP`, `X-Forwarded-For` y `X-Forwarded-Proto` están correctamente configurados (ver `docs/adr/ADR-003-uso-de-nginx.md` para el detalle de la decisión).
+
+Para detener Nginx:
+```bash
+nginx -s stop -c "$(pwd)/nginx.conf"
+```
