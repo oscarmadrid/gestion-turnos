@@ -61,5 +61,14 @@
     "fecha": "14/08/2026",
     "hora": "10:00",
     "confirmado": "si"
+  },
+  {
+    "id": 301,
+    "paciente": "Laura Gómez",
+    "documento": "28941100",
+    "especialidad": "Pediatría",
+    "fecha": "20/10/2026",
+    "hora": "11:30",
+    "confirmado": "si"
   }
 ]
