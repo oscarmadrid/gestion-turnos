@@ -2,6 +2,7 @@ import type { Medico, MedicoCrudo } from "../models/medico.js";
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { AppError } from "../errors/AppError.js";
+import { logger } from "../config/logger.js";
 
 export interface FiltrosMedico {
   especialidad?: string;
@@ -82,6 +83,7 @@ export class MedicoService {
 
     crudos.push(dataConId);
     await this.guardarCrudos(crudos);
+    logger.info({ medicoId: normalizado.id, nombre: normalizado.nombre }, "Médico creado");
     return normalizado;
   }
 
@@ -98,6 +100,7 @@ export class MedicoService {
 
     crudos[index] = fusionado;
     await this.guardarCrudos(crudos);
+    logger.info({ medicoId: id }, "Médico actualizado");
     return normalizado;
   }
 
@@ -108,6 +111,7 @@ export class MedicoService {
 
     crudos.splice(index, 1);
     await this.guardarCrudos(crudos);
+    logger.info({ medicoId: id }, "Médico eliminado");
     return true;
   }
 }

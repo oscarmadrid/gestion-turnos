@@ -3,6 +3,7 @@ import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { eventBus } from "../events/eventBus.js";
 import { AppError } from "../errors/AppError.js";
+import { logger } from "../config/logger.js";
 
 export interface FiltrosTurno {
   especialidad?: string;
@@ -126,6 +127,7 @@ export class AgendaTurnos {
         await writeFile(this.filePath, JSON.stringify(crudos, null, 2), "utf-8");
 
         // EMISIÓN EVENTO
+        logger.info({ turnoId: turnoNormalizado.id, paciente: turnoNormalizado.paciente }, "Turno creado");
         eventBus.emit("turno:nuevo", turnoNormalizado);
 
         return turnoNormalizado;
@@ -152,6 +154,7 @@ export class AgendaTurnos {
         await writeFile(this.filePath, JSON.stringify(crudos, null, 2), "utf-8");
 
         // EMISIÓN EVENTO
+        logger.info({ turnoId: id }, "Turno actualizado");
         eventBus.emit("turno:actualizado", turnoNormalizado);
 
         return turnoNormalizado;
@@ -168,6 +171,7 @@ export class AgendaTurnos {
         await writeFile(this.filePath, JSON.stringify(crudos, null, 2), "utf-8");
 
         // EMISIÓN DEL EVENTO INTERNO
+        logger.info({ turnoId: id }, "Turno eliminado");
         eventBus.emit("turno:eliminado", id);
 
         return true;

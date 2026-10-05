@@ -1,14 +1,16 @@
 import { Request, Response, NextFunction } from "express";
 import { AppError } from "../errors/AppError.js";
+import { logger } from "../config/logger.js";
 
 export function errorHandler(
-  err: unknown,
-  _req: Request,
+  err: Error,
+  req: Request,
   res: Response,
   _next: NextFunction
 ) {
   if (err instanceof AppError) {
-    return res.status(err.status).json({
+  logger.warn({ code: err.code, status: err.status, path: req.originalUrl }, err.message);
+  return res.status(err.status).json({
       status: err.status,
       message: err.message,
       code: err.code,
@@ -16,7 +18,8 @@ export function errorHandler(
     });
   }
 
-  console.error("[ERROR NO CONTROLADO]", err);
+
+  logger.error({ err, path: req.originalUrl, method: req.method }, "Error no controlado");
   return res.status(500).json({
     status: 500,
     message: "Error interno del servidor",
